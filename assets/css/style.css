@@ -1,29 +1,172 @@
-body {
-    background-color: #ffffff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+* {
+    box-sizing: border-box;
 }
-/* Make the canvas responsive while maintaining its high-res aspect ratio internally */
+body {
+    margin: 0;
+}
+
+/* --- Paper Page (Input Writing Area) --- */
+.paper-page {
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 2px;
+    aspect-ratio: 794 / 1123;
+    overflow: hidden;
+}
+
+.paper-margin-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 70px;
+    width: 2px;
+    background-color: rgba(255, 0, 0, 0.3);
+    z-index: 0;
+    pointer-events: none;
+    display: none;
+}
+
+#textInput {
+    position: absolute;
+    inset: 0;
+    padding-top: 80px;
+    padding-left: 90px;
+    padding-right: 30px;
+    padding-bottom: 80px;
+    outline: none;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+#textInput.paper-ruled {
+    background-image: linear-gradient(to bottom, transparent calc(100% - 1px), rgba(0, 150, 255, 0.2) calc(100% - 1px));
+}
+
+#textInput.paper-grid {
+    background-image:
+        linear-gradient(to bottom, transparent calc(100% - 1px), rgba(0, 150, 255, 0.12) calc(100% - 1px)),
+        linear-gradient(to right, transparent calc(100% - 1px), rgba(0, 150, 255, 0.12) calc(100% - 1px));
+}
+
+/* --- Canvas Output --- */
 #outputCanvas {
     max-width: 100%;
     height: auto;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     background-color: white;
     border-radius: 2px;
 }
-.control-group {
-    margin-bottom: 1rem;
+
+/* --- Output Desk Background --- */
+.output-desk-bg {
+    background: #3a3028;
+    background-image:
+        repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,0.02) 0px,
+            rgba(255,255,255,0.02) 1px,
+            transparent 1px,
+            transparent 20px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,0.015) 0px,
+            rgba(255,255,255,0.015) 1px,
+            transparent 1px,
+            transparent 20px
+        ),
+        linear-gradient(135deg, #2c2418 0%, #3d3226 25%, #2e2418 50%, #3a3028 75%, #2a1f15 100%);
 }
+
+/* --- Left Sidebar: Paper Thumbnails --- */
+.paper-thumb {
+    aspect-ratio: 3 / 4;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #f9fafb;
+}
+.paper-thumb:hover {
+    border-color: #93c5fd;
+}
+.paper-thumb.active {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+.thumb-inner {
+    width: 100%;
+    height: 100%;
+}
+
+.ruled-thumb {
+    background: white;
+    background-image:
+        linear-gradient(to bottom, transparent 20%, transparent calc(20% + 0px), rgba(0,150,255,0.2) calc(20% + 0px), rgba(0,150,255,0.2) calc(20% + 1px), transparent calc(20% + 1px));
+    background-size: 100% 12px;
+    position: relative;
+}
+.ruled-thumb::after {
+    content: '';
+    position: absolute;
+    left: 18%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 0, 0, 0.25);
+}
+
+.blank-thumb {
+    background: white;
+}
+
+.grid-thumb {
+    background: white;
+    background-image:
+        linear-gradient(to bottom, transparent calc(100% - 1px), rgba(0,150,255,0.15) calc(100% - 1px)),
+        linear-gradient(to right, transparent calc(100% - 1px), rgba(0,150,255,0.15) calc(100% - 1px));
+    background-size: 10px 10px;
+}
+
+/* --- Left Sidebar: Font Thumbnails --- */
+.font-thumb {
+    padding: 6px 10px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #fff;
+    color: #374151;
+}
+.font-thumb:hover {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+.font-thumb.active {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+/* --- Scrollbar --- */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1; 
-    border-radius: 4px;
+    background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #cbd5e1; 
+    background: #cbd5e1;
     border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8; 
+    background: #94a3b8;
+}
+
+/* --- Control group utility --- */
+.control-group {
+    margin-bottom: 1rem;
 }
