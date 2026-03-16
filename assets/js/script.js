@@ -2,7 +2,6 @@
 const canvas = document.getElementById('outputCanvas');
 const ctx = canvas.getContext('2d');
 const textInput = document.getElementById('textInput');
-const inputMarginLine = document.getElementById('inputMarginLine');
 const fontSelect = document.getElementById('fontSelect');
 const fontSizeInput = document.getElementById('fontSize');
 const inkColorInput = document.getElementById('inkColor');
@@ -22,6 +21,13 @@ const floatingToolbar = document.getElementById('floatingToolbar');
 const floatingMove = document.getElementById('floatingMove');
 const floatingColor = document.getElementById('floatingColor');
 const floatingReset = document.getElementById('floatingReset');
+const floatingSizeDown = document.getElementById('floatingSizeDown');
+const floatingSizeUp = document.getElementById('floatingSizeUp');
+const floatingSize = document.getElementById('floatingSize');
+
+// Preload background images
+const bg1Image = new Image();
+bg1Image.src = 'assets/picture/Background 1.jpeg';
 
 // State
 let paragraphsState = [];
@@ -45,7 +51,6 @@ paperGrid.addEventListener('click', (e) => {
     thumb.classList.add('active');
     paperTypeSelect.value = thumb.dataset.paper;
     syncInputPageStyles();
-    if (isCanvasGenerated) { syncTextState(); renderCanvas(); }
 });
 
 // Font thumbnail clicks
@@ -56,7 +61,6 @@ fontGrid.addEventListener('click', (e) => {
     thumb.classList.add('active');
     fontSelect.value = thumb.dataset.font;
     syncInputPageStyles();
-    if (isCanvasGenerated) { syncTextState(); renderCanvas(); }
 });
 
 // Font size +/- buttons
@@ -64,17 +68,14 @@ fontSizeDown.addEventListener('click', () => {
     const current = parseInt(fontSizeInput.value) || 28;
     fontSizeInput.value = Math.max(16, current - 2);
     syncInputPageStyles();
-    if (isCanvasGenerated) { syncTextState(); renderCanvas(); }
 });
 fontSizeUp.addEventListener('click', () => {
     const current = parseInt(fontSizeInput.value) || 28;
     fontSizeInput.value = Math.min(64, current + 2);
     syncInputPageStyles();
-    if (isCanvasGenerated) { syncTextState(); renderCanvas(); }
 });
 fontSizeInput.addEventListener('input', () => {
     syncInputPageStyles();
-    if (isCanvasGenerated) { syncTextState(); renderCanvas(); }
 });
 
 // ==========================================
@@ -100,7 +101,12 @@ function drawPaperBackground(lineSpacing) {
 
     const paperVal = paperTypeSelect.value;
 
-    if (paperVal === 'ruled') {
+    if (paperVal === 'bg1') {
+        // Draw the photo background stretched to fill the canvas
+        if (bg1Image.complete && bg1Image.naturalWidth > 0) {
+            ctx.drawImage(bg1Image, 0, 0, canvas.width, canvas.height);
+        }
+    } else if (paperVal === 'ruled') {
         ctx.strokeStyle = "rgba(0, 150, 255, 0.2)";
         ctx.lineWidth = 1;
         for (let y = PAPER_PADDING_TOP; y < canvas.height; y += lineSpacing) {
@@ -128,17 +134,23 @@ function drawPaperBackground(lineSpacing) {
     }
 }
 
-function processAndDrawParagraphs(maxWidth, lineSpacing, fontSize) {
-    let currentBaseY = PAPER_PADDING_TOP - (fontSize * 0.2);
+function processAndDrawParagraphs(maxWidth, globalLineSpacing, globalFontSize) {
+    const fontFamily = `"${fontSelect.value}", cursive`;
+    let currentBaseY = PAPER_PADDING_TOP - (globalFontSize * 0.2);
     const startX = PAPER_PADDING_LEFT + 10;
 
     paragraphsState.forEach((para, index) => {
+        const paraFontSize = para.fontSize || globalFontSize;
+        const paraLineSpacing = para.fontSize ? (para.fontSize * 1.4) : globalLineSpacing;
+
         if (!para.text || para.text.length === 0) {
-            currentBaseY += lineSpacing;
+            currentBaseY += paraLineSpacing;
             para.boundingBox = null;
             return;
         }
 
+        ctx.font = `${paraFontSize}px ${fontFamily}`;
+        
         const words = para.text.split(' ');
         let currentLine = '';
         let lines = [];
@@ -158,18 +170,18 @@ function processAndDrawParagraphs(maxWidth, lineSpacing, fontSize) {
 
         const paraStartX = startX + para.offsetX;
         const paraStartY = currentBaseY + para.offsetY;
-        const height = lines.length * lineSpacing;
+        const height = lines.length * paraLineSpacing;
 
         ctx.fillStyle = para.color || inkColorInput.value;
         lines.forEach((line, i) => {
-            ctx.fillText(line, paraStartX, paraStartY + (i * lineSpacing));
+            ctx.fillText(line, paraStartX, paraStartY + (i * paraLineSpacing));
         });
 
         para.boundingBox = {
             x: startX - 10,
-            y: paraStartY - fontSize,
+            y: paraStartY - paraFontSize,
             w: maxWidth + 20,
-            h: height + (fontSize * 0.2)
+            h: height + (paraFontSize * 0.2)
         };
 
         if (index === selectedParaIndex) {
@@ -194,7 +206,6 @@ function processAndDrawParagraphs(maxWidth, lineSpacing, fontSize) {
 function syncInputPageStyles() {
     const fontSize = parseInt(fontSizeInput.value) || 28;
     const fontFamily = `"${fontSelect.value}", cursive`;
-    const paperVal = paperTypeSelect.value;
 
     // Fixed line spacing for ruled/grid lines (independent of font size)
     const FIXED_LINE_SPACING = 36;
@@ -203,24 +214,6 @@ function syncInputPageStyles() {
     textInput.style.fontFamily = fontFamily;
     textInput.style.lineHeight = `${FIXED_LINE_SPACING}px`;
     textInput.style.color = inkColorInput.value;
-
-    // Remove all paper classes
-    textInput.classList.remove('paper-ruled', 'paper-grid');
-
-    if (paperVal === 'ruled') {
-        textInput.classList.add('paper-ruled');
-        textInput.style.backgroundSize = `100% ${FIXED_LINE_SPACING}px`;
-        textInput.style.backgroundPosition = `0 ${PAPER_PADDING_TOP}px`;
-        inputMarginLine.style.display = 'block';
-    } else if (paperVal === 'grid') {
-        textInput.classList.add('paper-grid');
-        textInput.style.backgroundSize = `${FIXED_LINE_SPACING}px ${FIXED_LINE_SPACING}px`;
-        textInput.style.backgroundPosition = `${PAPER_PADDING_LEFT}px ${PAPER_PADDING_TOP}px`;
-        inputMarginLine.style.display = 'none';
-    } else {
-        textInput.style.backgroundImage = 'none';
-        inputMarginLine.style.display = 'none';
-    }
 }
 
 // ==========================================
@@ -245,13 +238,13 @@ function renderCanvas() {
 }
 
 function syncTextState() {
-    let textContent = textInput.innerText || '';
+    let textContent = textInput.value !== undefined ? textInput.value : (textInput.innerText || '');
     if (textContent.endsWith('\n\n')) textContent = textContent.slice(0, -1);
 
     const lines = textContent.split('\n');
     paragraphsState = lines.map((text, index) => {
         if (paragraphsState[index]) return { ...paragraphsState[index], text };
-        return { text, offsetX: 0, offsetY: 0, boundingBox: null, color: inkColorInput.value };
+        return { text, offsetX: 0, offsetY: 0, boundingBox: null, color: inkColorInput.value, fontSize: null };
     });
 
     if (selectedParaIndex >= paragraphsState.length) {
@@ -279,17 +272,14 @@ inkColorInput.addEventListener('input', () => {
     if (selectedParaIndex !== -1 && paragraphsState[selectedParaIndex]) {
         floatingColor.value = inkColorInput.value;
     }
-    if (isCanvasGenerated) renderCanvas();
 });
 
 generateBtn.addEventListener('click', generateCanvas);
 
-textInput.addEventListener('input', () => {
-    if (isCanvasGenerated) { syncTextState(); renderCanvas(); }
-});
-textInput.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter' && isCanvasGenerated) { syncTextState(); renderCanvas(); }
-});
+// We no longer trigger sync & render on realtime typing.
+// The user must click Generate.
+// textInput.addEventListener('input', ...);
+// textInput.addEventListener('keyup', ...);
 
 floatingColor.addEventListener('input', (e) => {
     if (selectedParaIndex !== -1 && paragraphsState[selectedParaIndex]) {
@@ -298,11 +288,28 @@ floatingColor.addEventListener('input', (e) => {
     }
 });
 
+function updateFloatingSize(newSize) {
+    if (selectedParaIndex !== -1 && paragraphsState[selectedParaIndex]) {
+        const size = Math.max(16, Math.min(64, parseInt(newSize) || 28));
+        paragraphsState[selectedParaIndex].fontSize = size;
+        floatingSize.value = size;
+        if (isCanvasGenerated) renderCanvas();
+    }
+}
+
+floatingSize.addEventListener('input', (e) => updateFloatingSize(e.target.value));
+floatingSizeDown.addEventListener('click', () => updateFloatingSize(parseInt(floatingSize.value) - 2));
+floatingSizeUp.addEventListener('click', () => updateFloatingSize(parseInt(floatingSize.value) + 2));
+
 floatingReset.addEventListener('click', () => {
     if (selectedParaIndex !== -1 && paragraphsState[selectedParaIndex]) {
         paragraphsState[selectedParaIndex].offsetX = 0;
         paragraphsState[selectedParaIndex].offsetY = 0;
-        if (isCanvasGenerated) renderCanvas();
+        paragraphsState[selectedParaIndex].fontSize = null; // also reset custom size
+        if (isCanvasGenerated) {
+            floatingSize.value = parseInt(fontSizeInput.value) || 28;
+            renderCanvas();
+        }
     }
 });
 
@@ -350,6 +357,7 @@ function updateSelectionUI() {
     if (selectedParaIndex !== -1 && paragraphsState[selectedParaIndex]) {
         floatingToolbar.classList.remove('hidden');
         floatingColor.value = paragraphsState[selectedParaIndex].color || inkColorInput.value;
+        floatingSize.value = paragraphsState[selectedParaIndex].fontSize || parseInt(fontSizeInput.value) || 28;
         positionFloatingToolbar();
     } else {
         floatingToolbar.classList.add('hidden');
@@ -452,13 +460,6 @@ window.addEventListener('mouseup', stopDrag);
 canvas.addEventListener('touchstart', handleCanvasPointerDown, { passive: false });
 window.addEventListener('touchmove', (e) => { if (isDragging) drag(e); }, { passive: false });
 window.addEventListener('touchend', stopDrag);
-
-// Paste plain text only
-textInput.addEventListener('paste', (e) => {
-    e.preventDefault();
-    const text = (e.originalEvent || e).clipboardData.getData('text/plain');
-    document.execCommand('insertText', false, text);
-});
 
 // Init
 document.fonts.ready.then(() => { syncInputPageStyles(); });

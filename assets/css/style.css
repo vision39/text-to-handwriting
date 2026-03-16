@@ -5,51 +5,6 @@ body {
     margin: 0;
 }
 
-/* --- Paper Page (Input Writing Area) --- */
-.paper-page {
-    position: relative;
-    background-color: #ffffff;
-    border-radius: 2px;
-    aspect-ratio: 794 / 1123;
-    overflow: hidden;
-}
-
-.paper-margin-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 70px;
-    width: 2px;
-    background-color: rgba(255, 0, 0, 0.3);
-    z-index: 0;
-    pointer-events: none;
-    display: none;
-}
-
-#textInput {
-    position: absolute;
-    inset: 0;
-    padding-top: 80px;
-    padding-left: 90px;
-    padding-right: 30px;
-    padding-bottom: 80px;
-    outline: none;
-    box-sizing: border-box;
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow-y: auto;
-    z-index: 10;
-}
-
-#textInput.paper-ruled {
-    background-image: linear-gradient(to bottom, transparent calc(100% - 1px), rgba(0, 150, 255, 0.2) calc(100% - 1px));
-}
-
-#textInput.paper-grid {
-    background-image:
-        linear-gradient(to bottom, transparent calc(100% - 1px), rgba(0, 150, 255, 0.12) calc(100% - 1px)),
-        linear-gradient(to right, transparent calc(100% - 1px), rgba(0, 150, 255, 0.12) calc(100% - 1px));
-}
 
 /* --- Canvas Output --- */
 #outputCanvas {
@@ -129,6 +84,10 @@ body {
         linear-gradient(to bottom, transparent calc(100% - 1px), rgba(0,150,255,0.15) calc(100% - 1px)),
         linear-gradient(to right, transparent calc(100% - 1px), rgba(0,150,255,0.15) calc(100% - 1px));
     background-size: 10px 10px;
+}
+
+.bg1-thumb {
+    background: url('../picture/Background 1.jpeg') center/cover no-repeat;
 }
 
 /* --- Left Sidebar: Font Thumbnails --- */
