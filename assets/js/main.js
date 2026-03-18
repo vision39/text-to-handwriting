@@ -11,7 +11,8 @@ import {
   PAPER_PADDING_RIGHT,
   drawBlankCanvas,
   drawPaperBackground,
-  processAndDrawParagraphs,
+  calculateDocumentLayout,
+  drawCalculatedPage,
 } from './canvas.js';
 import {
   initEditorToolbar,
@@ -96,8 +97,31 @@ const state = {
 // ─── Core Render / Generate Cycle ───────────────────────────────────
 
 /**
- * Re-render the canvas using the current state.
- * Does nothing if the user hasn't generated output yet.
+ * Recalculate the entire document layout (word wrap, pagination).
+ * Call this when content, font, or canvas size changes.
+ */
+function updateLayout() {
+  if (!state.isCanvasGenerated) return;
+
+  const baseFontSize = 24;
+  const fontFamily = `"${el.fontSelect.value}", cursive`;
+  el.ctx.font = `${baseFontSize}px ${fontFamily}`; // important for correct measurement
+
+  const maxTextWidth = el.canvas.width - PAPER_PADDING_LEFT - PAPER_PADDING_RIGHT;
+
+  state.totalPages = calculateDocumentLayout(
+    el.ctx, el.canvas, state.paragraphsState, fontFamily, maxTextWidth
+  );
+
+  // Ensure currentPage doesn't exceed totalPages if content shrank
+  if (state.currentPage >= state.totalPages && state.totalPages > 0) {
+    state.currentPage = Math.max(0, state.totalPages - 1);
+  }
+}
+
+/**
+ * Re-render the canvas using the pre-calculated layout state.
+ * Extremely fast. Call this for pagination & drag events.
  */
 function renderCanvas() {
   if (!state.isCanvasGenerated) return;
@@ -108,23 +132,12 @@ function renderCanvas() {
 
   drawPaperBackground(el.ctx, el.canvas, el.paperTypeSelect.value, baseLineSpacing, bg1Image);
 
-  el.ctx.font = `${baseFontSize}px ${fontFamily}`;
-  el.ctx.fillStyle = el.inkColorInput.value;
   el.ctx.textBaseline = 'alphabetic';
 
-  const maxTextWidth = el.canvas.width - PAPER_PADDING_LEFT - PAPER_PADDING_RIGHT;
-
-  state.totalPages = processAndDrawParagraphs(
-    el.ctx, el.canvas, state.paragraphsState, fontFamily,
-    el.inkColorInput.value, maxTextWidth, state.selectedParaIndex, state.currentPage
+  drawCalculatedPage(
+    el.ctx, state.paragraphsState, fontFamily,
+    el.inkColorInput.value, state.selectedParaIndex, state.currentPage
   );
-  
-  // Ensure currentPage doesn't exceed totalPages if content shrank
-  if (state.currentPage >= state.totalPages && state.totalPages > 0) {
-    state.currentPage = state.totalPages - 1;
-    // We have to re-render because we just changed the page index we need to draw
-    return renderCanvas();
-  }
 
   updatePaginationUI();
   positionFloatingToolbar(el, state);
@@ -184,8 +197,11 @@ function syncTextState() {
   // Deselect if the selected paragraph no longer exists
   if (state.selectedParaIndex >= state.paragraphsState.length) {
     state.selectedParaIndex = -1;
-    updateSelectionUI(el, state, renderCanvas);
   }
+  
+  // Update layout and refresh UI
+  updateLayout();
+  updateSelectionUI(el, state, renderCanvas);
 }
 
 /**
@@ -222,6 +238,9 @@ el.inkColorInput.addEventListener('input', () => {
   if (state.selectedParaIndex !== -1 && state.paragraphsState[state.selectedParaIndex]) {
     el.floatingColor.value = el.inkColorInput.value;
   }
+  
+  // Color change doesn't alter layout, so we just render
+  if (state.isCanvasGenerated) renderCanvas();
 });
 
 // Floating toolbar — per-paragraph colour override
@@ -254,7 +273,14 @@ window.addEventListener('scroll', () => positionFloatingToolbar(el, state));
 // ─── Initialise Modules ─────────────────────────────────────────────
 
 initEditorToolbar(el);
-initSidebar(el, () => syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput));
+initSidebar(el, () => {
+  syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput);
+  // Font/Paper change alters layout or background respectively, recalibrate layout and draw
+  if (state.isCanvasGenerated) {
+    updateLayout();
+    renderCanvas();
+  }
+});
 initFontModal(el);
 initDragAndDrop(el, state, renderCanvas);
 initPagination(el, state, renderCanvas);
