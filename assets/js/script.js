@@ -869,17 +869,21 @@ const sunIcon = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 
 
 // Helper function to apply colors
 function applyTheme(theme) {
-    if (theme === 'dark') {
+    const isDark = theme === 'dark';
+    
+    if (isDark) {
         document.body.classList.add('dark-mode');
         toggleText.textContent = 'Light Mode';
         toggleIcon.innerHTML = sunIcon;
-        
     } else {
         document.body.classList.remove('dark-mode');
         toggleText.textContent = 'Dark Mode';
         toggleIcon.innerHTML = moonIcon;
-        
     }
+    
+    // Add Accessibility (ARIA) states for screen readers
+    darkModeToggle.setAttribute('aria-pressed', String(isDark));
+    darkModeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
 }
 
 // 1. Check if the user already chose dark mode in a previous visit
