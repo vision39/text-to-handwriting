@@ -227,3 +227,90 @@ body {
 .zoom-in {
     animation-name: zoomIn;
 }
+
+/* =========================================
+   🌙 DARK MODE OVERRIDES 
+   ========================================= */
+
+/* 1. Global Background and Text */
+.dark-mode {
+    background-color: #121212 !important;
+    /* Overrides Tailwind inline style */
+    color: #e5e7eb !important;
+}
+
+/* 2. Header and Sidebars */
+.dark-mode header,
+.dark-mode aside,
+.dark-mode .bg-white {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+}
+
+/* 3. Text Colors */
+.dark-mode .text-gray-800,
+.dark-mode .text-gray-900 {
+    color: #f3f4f6 !important;
+}
+
+.dark-mode .text-gray-600,
+.dark-mode .text-gray-500 {
+    color: #9ca3af !important;
+}
+
+/* 4. The Gray Background behind the Canvas */
+.dark-mode #main-desk{
+    background-color: #111827 !important;
+}
+
+/* 5. Left Sidebar: Paper Thumbnails */
+.dark-mode .paper-thumb {
+    background: #374151;
+    border-color: transparent;
+}
+
+.dark-mode .paper-thumb.active {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
+}
+
+/* 6. Left Sidebar: Font Thumbnails */
+.dark-mode .font-thumb {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+.dark-mode .font-thumb:hover {
+    background: #374151;
+    border-color: #60a5fa;
+}
+
+.dark-mode .font-thumb.active {
+    background: #1e3a8a;
+    border-color: #60a5fa;
+    color: #bfdbfe;
+}
+
+/* 7. Editor Toolbar and Content */
+.dark-mode .editor-toolbar {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+}
+
+.dark-mode .editor-content {
+    border-color: #4b5563 !important;
+}
+
+/* 8. Buttons (like the dark mode toggle itself!) */
+.dark-mode button.bg-white,
+.dark-mode a.bg-white {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #e5e7eb !important;
+}
+
+.dark-mode button.bg-white:hover,
+.dark-mode a.bg-white:hover {
+    background-color: #4b5563 !important;
+}
