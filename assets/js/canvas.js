@@ -140,38 +140,32 @@ export function drawSelectionHighlight(ctx, box) {
 // ─── Paragraph Rendering ────────────────────────────────────────────
 
 /**
- * Render paragraphs onto the canvas with word-wrap, grouping into pages.
- * Returns the total number of pages required.
+ * Calculate the full document layout, word-wrapping paragraphs and computing page breaks.
+ * This caches the exact line positions and hitboxes in the `para.layout` object,
+ * returning the total number of pages required.
  *
  * @param {CanvasRenderingContext2D} ctx
  * @param {HTMLCanvasElement} canvas
- * @param {Array}  paragraphsState  — mutable paragraph state array
- * @param {string} fontFamily       — CSS font-family string
- * @param {string} inkColor         — fallback ink colour
- * @param {number} maxWidth         — max text width in canvas pixels
- * @param {number} selectedIndex    — currently selected paragraph (-1 for none)
- * @param {number} pageIndex        — 0-based index of the page to render
+ * @param {Array}  paragraphsState
+ * @param {string} fontFamily
+ * @param {number} maxWidth
  * @returns {number} totalPages
  */
-export function processAndDrawParagraphs(
-  ctx, canvas, paragraphsState, fontFamily, inkColor, maxWidth, selectedIndex, pageIndex
-) {
+export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily, maxWidth) {
   const BASE_FONT_SIZE = HEADING_SIZE_MAP.p;
   const startX = PAPER_PADDING_LEFT + 10;
   const MAX_Y = canvas.height - PAPER_PADDING_BOTTOM;
 
   let currentVirtualY = PAPER_PADDING_TOP - (BASE_FONT_SIZE * 0.2);
   let currentPage = 0;
-  
-  // Keep track of how many pages we need
   let totalPages = 1;
 
-  paragraphsState.forEach((para, index) => {
+  paragraphsState.forEach((para) => {
     const paraFontSize = HEADING_SIZE_MAP[para.textSize] || HEADING_SIZE_MAP.p;
     const paraLineSpacing = paraFontSize * 1.4;
 
-    // Reset bounding box. If this paragraph isn't on the CURRENT page, it'll remain null.
-    para.boundingBox = null;
+    para.layout = { lines: [], boundingBoxesByPage: {} };
+    ctx.font = `${paraFontSize}px ${fontFamily}`;
 
     if ((!para.text || para.text.length === 0) && para.type === 'text') {
       currentVirtualY += paraLineSpacing;
@@ -186,67 +180,115 @@ export function processAndDrawParagraphs(
     const prefix = buildListPrefix(para);
     const fullText = prefix + (para.text || '');
     const segments = para.segments || [{ text: para.text, underline: false }];
-
-    ctx.font = `${paraFontSize}px ${fontFamily}`;
     const lines = wordWrap(ctx, fullText, maxWidth);
-    ctx.fillStyle = para.color || inkColor;
-
     const hasUnderline = segments.some((s) => s.underline);
 
-    // Track the physical bounding box for hit testing, but ONLY for lines drawn on the active page
-    let drawnLinesOnActivePage = 0;
-    let firstDrawnYOnActivePage = -1;
-    let lastDrawnYOnActivePage = -1;
+    let firstYOnPage = {};
+    let lastYOnPage = {};
 
     lines.forEach((line, lineIndex) => {
-      // Before placing the line, check if we need to pagination-break
+      // Check if we need to pagination-break before placing this line
       if (currentVirtualY + paraLineSpacing > MAX_Y) {
         currentPage++;
         totalPages = Math.max(totalPages, currentPage + 1);
-        currentVirtualY = PAPER_PADDING_TOP; // reset Y to top of new page
+        currentVirtualY = PAPER_PADDING_TOP; // reset to top of new page
       }
 
-      const paraStartX = startX + para.offsetX;
-      const lineY = currentVirtualY + para.offsetY;
+      const lineY = currentVirtualY;
 
-      // Only draw if this line belongs to the page we are currently rendering
-      if (currentPage === pageIndex) {
-        ctx.fillText(line, paraStartX, lineY);
-        
-        if (drawnLinesOnActivePage === 0) firstDrawnYOnActivePage = lineY;
-        lastDrawnYOnActivePage = lineY;
-        drawnLinesOnActivePage++;
+      para.layout.lines.push({
+        text: line,
+        lineIndex,
+        isUnderlined: hasUnderline,
+        rawLinesArray: lines,
+        prefix,
+        segments,
+        pageIndex: currentPage,
+        baseY: lineY,
+        fontSize: paraFontSize
+      });
 
-        if (hasUnderline) {
-          drawUnderlineSpans(
-            ctx, line, lines, lineIndex, lineY,
-            paraStartX, paraFontSize, prefix, para, segments, inkColor
-          );
-        }
-      }
+      if (firstYOnPage[currentPage] === undefined) firstYOnPage[currentPage] = lineY;
+      lastYOnPage[currentPage] = lineY;
 
       currentVirtualY += paraLineSpacing;
     });
 
+    // Create a bounding box for each page this paragraph touches
+    for (const pg of Object.keys(firstYOnPage)) {
+      const pId = parseInt(pg, 10);
+      para.layout.boundingBoxesByPage[pId] = {
+        x: startX - 10,
+        y: firstYOnPage[pId] - paraFontSize,
+        w: maxWidth + 20,
+        h: (lastYOnPage[pId] - firstYOnPage[pId]) + paraLineSpacing,
+      };
+    }
+
     // Sub-margin after a paragraph
     currentVirtualY += (paraFontSize * 0.2);
+  });
 
-    // If any part of this paragraph was drawn on the currently active page, set its hitbox
-    if (drawnLinesOnActivePage > 0 && currentPage >= pageIndex) {
+  return totalPages;
+}
+
+/**
+ * Fast-path rendering function that simply loops through pre-calculated layout state
+ * and draws only the lines meant for the given targetPageIndex.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {Array}  paragraphsState
+ * @param {string} fontFamily
+ * @param {string} inkColor
+ * @param {number} selectedIndex
+ * @param {number} targetPageIndex
+ */
+export function drawCalculatedPage(ctx, paragraphsState, fontFamily, inkColor, selectedIndex, targetPageIndex) {
+  const startX = PAPER_PADDING_LEFT + 10;
+
+  paragraphsState.forEach((para, index) => {
+    if (!para.layout) return;
+
+    // Determine physics hitbox based on the current page rendering
+    const box = para.layout.boundingBoxesByPage[targetPageIndex];
+    if (box) {
+      // Inject the live drag offset into the active hitbox tracking
       para.boundingBox = {
-        x: startX - 10,
-        y: firstDrawnYOnActivePage - paraFontSize,
-        w: maxWidth + 20,
-        h: (lastDrawnYOnActivePage - firstDrawnYOnActivePage) + paraLineSpacing,
+        x: box.x + para.offsetX,
+        y: box.y + para.offsetY,
+        w: box.w,
+        h: box.h
       };
 
       if (index === selectedIndex) {
         drawSelectionHighlight(ctx, para.boundingBox);
       }
+    } else {
+      para.boundingBox = null; // Para does not exist on this page
     }
-  });
 
-  return totalPages;
+    // Filter lines belonging to this page
+    const linesToDraw = para.layout.lines.filter(l => l.pageIndex === targetPageIndex);
+    if (linesToDraw.length === 0) return;
+
+    ctx.font = `${linesToDraw[0].fontSize}px ${fontFamily}`;
+    ctx.fillStyle = para.color || inkColor;
+
+    const paraStartX = startX + para.offsetX;
+
+    // Draw the precalculated lines
+    linesToDraw.forEach(lineCtx => {
+      const lineY = lineCtx.baseY + para.offsetY;
+      ctx.fillText(lineCtx.text, paraStartX, lineY);
+
+      if (lineCtx.isUnderlined) {
+        drawUnderlineSpans(
+          ctx, lineCtx.text, lineCtx.rawLinesArray, lineCtx.lineIndex, lineY,
+          paraStartX, lineCtx.fontSize, lineCtx.prefix, para, lineCtx.segments, inkColor
+        );
+      }
+    });
+  });
 }
 
 // ─── Internal Helpers ───────────────────────────────────────────────
