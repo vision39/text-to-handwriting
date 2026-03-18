@@ -231,93 +231,111 @@ body {
 /* =========================================
    🌙 DARK MODE OVERRIDES 
    ========================================= */
-
-/* 1. Global Background and Text */
+   
+/* Define Dark Theme Variables */
 .dark-mode {
-    background-color: #121212 !important;
-    /* Overrides Tailwind inline style */
-    color: #e5e7eb !important;
+    --dm-bg: #121212;
+    --dm-surface: #1f2937;
+    --dm-surface-2: #374151;
+    --dm-border: #4b5563;
+    --dm-text: #e5e7eb;
+    --dm-text-light: #f3f4f6;
+    --dm-text-muted: #9ca3af;
+    --dm-desk-bg: #111827;
+    --dm-accent: #60a5fa;
+    --dm-accent-bg: #1e3a8a;
+    --dm-accent-text: #bfdbfe;
+
+    /* Paper colors */
+    --dm-paper-bg: #ffffff;
+    --dm-paper-text: #111827;
+    --dm-paper-border: #d1d5db;
+
+    /* 1. Global Background and Text */
+    background-color: var(--dm-bg) !important;
+    color: var(--dm-text) !important;
 }
 
 /* 2. Header and Sidebars */
 .dark-mode header,
 .dark-mode aside,
-.dark-mode .bg-white:not(#textInput, #outputCanvas){
-    background-color: #1f2937 !important;
-    border-color: #374151 !important;
+.dark-mode .bg-white:not(#textInput, #outputCanvas) {
+    background-color: var(--dm-surface) !important;
+    border-color: var(--dm-surface-2) !important;
 }
 
+/* Keep paper/editor surfaces white for realism */
 .dark-mode #textInput,
 .dark-mode #outputCanvas {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-    border-color: #d1d5db !important;
+    background-color: var(--dm-paper-bg) !important;
+    color: var(--dm-paper-text) !important;
+    border-color: var(--dm-paper-border) !important;
 }
 
 /* 3. Text Colors */
 .dark-mode .text-gray-800,
 .dark-mode .text-gray-900 {
-    color: #f3f4f6 !important;
+    color: var(--dm-text-light) !important;
 }
 
 .dark-mode .text-gray-600,
 .dark-mode .text-gray-500 {
-    color: #9ca3af !important;
+    color: var(--dm-text-muted) !important;
 }
 
 /* 4. The Gray Background behind the Canvas */
-.dark-mode #main-desk{
-    background-color: #111827 !important;
+.dark-mode #main-desk {
+    background-color: var(--dm-desk-bg) !important;
 }
 
 /* 5. Left Sidebar: Paper Thumbnails */
 .dark-mode .paper-thumb {
-    background: #374151;
+    background: var(--dm-surface-2);
     border-color: transparent;
 }
 
 .dark-mode .paper-thumb.active {
-    border-color: #60a5fa;
+    border-color: var(--dm-accent);
     box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
 }
 
 /* 6. Left Sidebar: Font Thumbnails */
 .dark-mode .font-thumb {
-    background: #1f2937;
-    border-color: #4b5563;
-    color: #e5e7eb;
+    background: var(--dm-surface);
+    border-color: var(--dm-border);
+    color: var(--dm-text);
 }
 
 .dark-mode .font-thumb:hover {
-    background: #374151;
-    border-color: #60a5fa;
+    background: var(--dm-surface-2);
+    border-color: var(--dm-accent);
 }
 
 .dark-mode .font-thumb.active {
-    background: #1e3a8a;
-    border-color: #60a5fa;
-    color: #bfdbfe;
+    background: var(--dm-accent-bg);
+    border-color: var(--dm-accent);
+    color: var(--dm-accent-text);
 }
 
 /* 7. Editor Toolbar and Content */
 .dark-mode .editor-toolbar {
-    background-color: #1f2937 !important;
-    border-color: #374151 !important;
+    background-color: var(--dm-surface) !important;
+    border-color: var(--dm-surface-2) !important;
 }
 
 .dark-mode .editor-content {
-    border-color: #4b5563 !important;
+    border-color: var(--dm-border) !important;
 }
 
 /* 8. Buttons (like the dark mode toggle itself!) */
 .dark-mode button.bg-white,
 .dark-mode a.bg-white {
-    background-color: #374151 !important;
-    border-color: #4b5563 !important;
-    color: #e5e7eb !important;
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
 }
 
 .dark-mode button.bg-white:hover,
 .dark-mode a.bg-white:hover {
-    background-color: #4b5563 !important;
+    background-color: var(--dm-border) !important;
 }
