@@ -394,11 +394,9 @@ darkModeToggle.addEventListener('click', () => {
     localStorage.setItem('theme', newTheme);
 
     // Re-draw the canvas so the UI updates instantly
-    if (typeof isCanvasGenerated !== 'undefined') {
-        if (isCanvasGenerated) {
-            if (typeof generateCanvas === 'function') generateCanvas();
-        } else {
-            if (typeof drawBlankCanvas === 'function') drawBlankCanvas(); 
-        }
+    if (state.isCanvasGenerated) {
+        renderCanvas();
+    } else {
+        drawBlankCanvas(el.ctx, el.canvas);
     }
 });

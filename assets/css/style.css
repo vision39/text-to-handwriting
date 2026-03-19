@@ -274,6 +274,10 @@ body {
     animation-name: zoomIn;
 }
 
+#main-desk {
+    background-color: #e8eaed;
+}
+
 /* =========================================
    🌙 DARK MODE OVERRIDES 
    ========================================= */
