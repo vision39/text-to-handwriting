@@ -378,8 +378,9 @@ function applyTheme(theme) {
     darkModeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
 }
 
-// 1. Check if the user already chose dark mode in a previous visit
-const currentTheme = localStorage.getItem('theme') || 'light';
+// 1. Check if the user already chose dark mode in a previous visit, else adapt to system preference
+const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const currentTheme = localStorage.getItem('theme') || (systemPrefersDark ? 'dark' : 'light');
 applyTheme(currentTheme);
 
 // 2. Listen for clicks on the toggle button

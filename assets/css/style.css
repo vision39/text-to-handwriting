@@ -309,7 +309,7 @@ body.dark-mode {
 /* 2. Header and Sidebars */
 body.dark-mode header,
 body.dark-mode aside,
-body.dark-mode .bg-white:not(#textInput, #outputCanvas) {
+body.dark-mode .bg-white:not(#textInput, #outputCanvas, #editorToolbar, #headingSelect) {
     background-color: var(--dm-surface);
     border-color: var(--dm-surface-2);
 }
@@ -328,7 +328,7 @@ body.dark-mode .text-gray-900 {
     color: var(--dm-text-light);
 }
 
-body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-600:not(#headingSelect),
 body.dark-mode .text-gray-500 {
     color: var(--dm-text-muted);
 }
@@ -367,15 +367,7 @@ body.dark-mode .font-thumb.active {
     color: var(--dm-accent-text);
 }
 
-/* 7. Editor Toolbar and Content */
-body.dark-mode .editor-toolbar {
-    background-color: var(--dm-surface);
-    border-color: var(--dm-surface-2);
-}
-
-body.dark-mode .editor-content {
-    border-color: var(--dm-border);
-}
+/* 7. Removed Toolbar Overrides to maintain light mode style */
 
 /* 8. Buttons (like the dark mode toggle itself!) */
 body.dark-mode button.bg-white,
