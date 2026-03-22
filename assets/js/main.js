@@ -357,7 +357,6 @@ if (el.downloadPDFBtn) {
     el.downloadPDFBtnText.textContent = "Downloading...";
 
     try {
-      const timestamp = Date.now(); // Use a single timestamp for the batch
       for (let i = 0; i < state.totalPages; i++) {
         state.currentPage = i;
         renderCanvas();
@@ -365,8 +364,7 @@ if (el.downloadPDFBtn) {
         // Wait for canvas to repaint and to space out downloads to avoid browser blocking
         await new Promise(r => setTimeout(r, 250));
 
-        // Note: assumes downloadCanvasAsImage takes (canvas, pageNum, timestamp)
-        addCanvasPageToPDF(pdfDoc, el.canvas, i + 1, timestamp);
+        addCanvasPageToPDF(pdfDoc, el.canvas, i + 1);
       }
     } finally {
       // Restore UI state safely

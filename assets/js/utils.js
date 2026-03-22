@@ -64,7 +64,7 @@ export function downloadCanvasAsImage(canvas, pageNum = null, timestamp = Date.n
   link.click();
 }
 
-export function addCanvasPageToPDF(pdfDoc, canvas, pageNum, timestamp) {
+export function addCanvasPageToPDF(pdfDoc, canvas, pageNum) {
   const imgData = canvas.toDataURL("image/png");
 
   const pdfWidth = pdfDoc.internal.pageSize.getWidth();
