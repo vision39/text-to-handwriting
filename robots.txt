@@ -1,1 +1,4 @@
+User-agent: *
+Allow: /
 
+Sitemap: https://vision39.github.io/txt-to-handwriting/sitemap.xml
