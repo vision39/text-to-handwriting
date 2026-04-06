@@ -198,9 +198,14 @@ export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily
 
       const lineY = currentVirtualY;
 
-      const wordsInLine = line.split(' ');
-      const wordJittersX = wordsInLine.map(() => (Math.random() * 3) - 1.5);
-      const wordJittersY = wordsInLine.map(() => (Math.random() * 2) - 1.0);
+      const charJitters = [];
+      for (let i = 0; i < line.length; i++) {
+        charJitters.push({
+          x: (Math.random() * 1.5) - 0.75,
+          y: (Math.random() * 1.5) - 0.75,
+          r: (Math.random() * 0.04) - 0.02
+        });
+      }
 
       para.layout.lines.push({
         text: line,
@@ -212,8 +217,7 @@ export function calculateDocumentLayout(ctx, canvas, paragraphsState, fontFamily
         pageIndex: currentPage,
         baseY: lineY,
         fontSize: paraFontSize,
-        wordJittersX,
-        wordJittersY
+        charJitters
       });
 
       if (firstYOnPage[currentPage] === undefined) firstYOnPage[currentPage] = lineY;
@@ -285,25 +289,23 @@ export function drawCalculatedPage(ctx, paragraphsState, fontFamily, inkColor, s
 
     const paraStartX = startX + para.offsetX;
 
-    // Draw the precalculated lines
+    // Draw the precalculated lines character-by-character
     linesToDraw.forEach(lineCtx => {
       const lineY = lineCtx.baseY + para.offsetY;
-      
       let currentX = paraStartX;
-      const words = lineCtx.text.split(' ');
       
-      words.forEach((word, idx) => {
-        if (word === '' && idx === words.length - 1) return;
+      const chars = lineCtx.text.split('');
+      
+      chars.forEach((char, charIdx) => {
+        const jitter = lineCtx.charJitters[charIdx] || { x: 0, y: 0, r: 0 };
         
-        const jitterX = lineCtx.wordJittersX ? lineCtx.wordJittersX[idx] : 0;
-        const jitterY = lineCtx.wordJittersY ? lineCtx.wordJittersY[idx] : 0;
+        ctx.save();
+        ctx.translate(currentX + jitter.x, lineY + jitter.y);
+        ctx.rotate(jitter.r);
+        ctx.fillText(char, 0, 0);
+        ctx.restore();
         
-        ctx.fillText(word, currentX, lineY + jitterY);
-        
-        const wordWidth = ctx.measureText(word).width;
-        const spaceWidth = ctx.measureText(' ').width;
-        
-        currentX += wordWidth + spaceWidth + jitterX;
+        currentX += ctx.measureText(char).width;
       });
 
       if (lineCtx.isUnderlined) {

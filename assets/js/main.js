@@ -146,6 +146,78 @@ function updateLayout() {
 }
 
 /**
+ * Persist important user data to localStorage.
+ */
+function saveEditorData() {
+  const data = {
+    content: el.textInput.innerHTML,
+    font: el.fontSelect.value,
+    paper: el.paperTypeSelect.value,
+    inkColor: el.inkColorInput.value,
+    pageArea: state.pageArea
+  };
+  localStorage.setItem('handwriting_editor_data', JSON.stringify(data));
+}
+
+/**
+ * Retrieve and apply user data from localStorage.
+ */
+function loadEditorData() {
+  const rawData = localStorage.getItem('handwriting_editor_data');
+  if (!rawData) return;
+
+  try {
+    const data = JSON.parse(rawData);
+    
+    // Restore editor content
+    if (data.content !== undefined) {
+      el.textInput.innerHTML = data.content;
+    }
+
+    // Restore font style
+    if (data.font) {
+      el.fontSelect.value = data.font;
+      // Sync sidebar active state visually
+      const fontThumb = el.fontGrid.querySelector(`.font-thumb[data-font="${data.font}"]`);
+      if (fontThumb) {
+        el.fontGrid.querySelectorAll('.font-thumb').forEach(t => t.classList.remove('active'));
+        fontThumb.classList.add('active');
+      }
+    }
+
+    // Restore paper type
+    if (data.paper) {
+      el.paperTypeSelect.value = data.paper;
+      // Sync sidebar active state visually
+      const paperThumb = el.paperGrid.querySelector(`.paper-thumb[data-paper="${data.paper}"]`);
+      if (paperThumb) {
+        el.paperGrid.querySelectorAll('.paper-thumb').forEach(t => t.classList.remove('active'));
+        paperThumb.classList.add('active');
+      }
+    }
+
+    // Restore ink color
+    if (data.inkColor) {
+      el.inkColorInput.value = data.inkColor;
+    }
+
+    // Restore customized area
+    if (data.pageArea) {
+      state.pageArea = data.pageArea;
+    }
+
+    // After loading values, sync the editor preview styles
+    syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput);
+
+    return true; // Successfully found data
+
+  } catch (err) {
+    console.error("Error loading saved data:", err);
+    return false;
+  }
+}
+
+/**
  * Re-render the canvas using the pre-calculated layout state.
  * Extremely fast. Call this for pagination & drag events.
  */
@@ -252,6 +324,9 @@ function generateCanvas() {
 
 // Generate button
 el.generateBtn.addEventListener('click', generateCanvas);
+
+// Auto-save context on text input change
+el.textInput.addEventListener('input', saveEditorData);
 
 // Close dropdown if clicked outside
 document.addEventListener('click', (e) => {
@@ -390,6 +465,9 @@ el.inkColorInput.addEventListener('input', () => {
   
   // Color change doesn't alter layout, so we just render
   if (state.isCanvasGenerated) renderCanvas();
+
+  // Persist color change
+  saveEditorData();
 });
 
 // Floating toolbar — per-paragraph colour override
@@ -421,7 +499,7 @@ window.addEventListener('scroll', () => positionFloatingToolbar(el, state));
 
 // ─── Initialise Modules ─────────────────────────────────────────────
 
-initEditorToolbar(el);
+initEditorToolbar(el, saveEditorData);
 initSidebar(el, () => {
   syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput);
   // Font/Paper change alters layout or background respectively, recalibrate layout and draw
@@ -429,16 +507,26 @@ initSidebar(el, () => {
     updateLayout();
     renderCanvas();
   }
+  // Persist sidebar choices
+  saveEditorData();
 });
 initFontModal(el);
 initDragAndDrop(el, state, renderCanvas);
 initPagination(el, state, renderCanvas);
-initEditAreaModal(el, state, renderCanvas, updateLayout, drawPaperBackground, bg1Image, syncTextState);
+initEditAreaModal(el, state, renderCanvas, updateLayout, drawPaperBackground, bg1Image, () => {
+    syncTextState();
+    saveEditorData(); // Save when edit area is applied
+});
 
 // ─── Boot ───────────────────────────────────────────────────────────
 
+const dataFound = loadEditorData();
+
 document.fonts.ready.then(() => {
   syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput);
+  if (dataFound && el.textInput.innerText.trim().length > 0) {
+    generateCanvas();
+  }
 });
 syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput);
 drawBlankCanvas(el.ctx, el.canvas);

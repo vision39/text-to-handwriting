@@ -18,30 +18,35 @@ import { getCanvasCoordinates, showUploadStatus } from './utils.js';
  * @param {HTMLButtonElement} el.btnBulletList
  * @param {HTMLButtonElement} el.btnNumberList
  * @param {HTMLSelectElement} el.headingSelect
+ * @param {Function} onToolbarChange — callback after formatting
  */
-export function initEditorToolbar(el) {
+export function initEditorToolbar(el, onToolbarChange) {
   el.btnUnderline.addEventListener('click', () => {
     document.execCommand('underline', false, null);
     el.textInput.focus();
     updateToolbarState(el);
+    if (onToolbarChange) onToolbarChange();
   });
 
   el.btnBulletList.addEventListener('click', () => {
     document.execCommand('insertUnorderedList', false, null);
     el.textInput.focus();
     updateToolbarState(el);
+    if (onToolbarChange) onToolbarChange();
   });
 
   el.btnNumberList.addEventListener('click', () => {
     document.execCommand('insertOrderedList', false, null);
     el.textInput.focus();
     updateToolbarState(el);
+    if (onToolbarChange) onToolbarChange();
   });
 
   el.headingSelect.addEventListener('change', () => {
     document.execCommand('formatBlock', false, el.headingSelect.value);
     el.textInput.focus();
     updateToolbarState(el);
+    if (onToolbarChange) onToolbarChange();
   });
 
   // Reflect formatting state when the caret moves
@@ -708,10 +713,9 @@ export function initEditAreaModal(el, state, renderCanvas, updateLayout, drawPap
     };
 
     closeEditAreaModal();
+    syncTextState();
 
     if (state.isCanvasGenerated) {
-      // Full re-sync: rebuild paragraph state, recalculate layout, and render
-      syncTextState();
       renderCanvas();
     }
   });
