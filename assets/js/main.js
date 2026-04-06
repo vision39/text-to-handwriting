@@ -524,9 +524,6 @@ const dataFound = loadEditorData();
 
 document.fonts.ready.then(() => {
   syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput);
-  if (dataFound && el.textInput.innerText.trim().length > 0) {
-    generateCanvas();
-  }
 });
 syncInputPageStyles(el.textInput, el.fontSelect, el.inkColorInput);
 drawBlankCanvas(el.ctx, el.canvas);
