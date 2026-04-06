@@ -8,6 +8,12 @@
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://vision39.github.io/txt-to-handwriting/assets/picture/icon.png">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Text to Handwriting Converter – Free Handwriting Generator">
+    <meta name="twitter:description" content="Convert typed text into realistic handwriting. Download as image or PDF. Free, no login required.">
+    <meta name="twitter:site" content="@vision39">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Text to Handwriting">
+    <meta name="theme-color" content="#2563eb">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Convert text into realistic handwriting for assignments and notes. Free online handwriting generator with multiple styles, paper types and PDF download.">
     <meta name="keywords" content="text to handwriting, handwriting generator, convert text to handwritten notes, handwriting generator for students">
@@ -19,7 +25,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Shadows+Into+Light&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Shadows+Into+Light&family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Shadows+Into+Light&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Kalam:wght@300;400;700&family=Shadows+Into+Light&family=Inter:wght@400;500;600;700&display=swap"></noscript>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="icon" type="image/png" href="assets/picture/icon.png">
 </head>
@@ -74,8 +82,14 @@
     </header>
 
     <!-- Main 3-column Layout -->
-    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden" style="height: calc(100vh - 49px);">
-        <h1 class="hidden">Free Text to Handwriting Converter Online</h1>
+    <main class="flex-1 flex flex-col overflow-hidden" style="height: calc(100vh - 49px);">
+        <!-- Title Banner -->
+        <h1 class="w-full text-center py-2.5 px-4 bg-white/50 backdrop-blur-sm border-b border-gray-200 text-sm md:text-[15px] font-bold text-gray-800 shadow-sm shrink-0 z-10 flex items-center justify-center gap-2">
+            Free Text to Handwriting Converter Online
+        </h1>
+
+        <!-- Content Flex Wrapper -->
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
 
         <!-- Sidebar Overlay (Mobile) -->
         <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-[45] hidden lg:hidden backdrop-blur-sm transition-opacity opacity-0 dark:bg-black/70"></div>
@@ -278,6 +292,7 @@
             </div>
         </section>
 
+        </div>
     </main>
 
     <!-- Floating Canvas Toolbar for Selected Paragraph -->
@@ -483,17 +498,50 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Text to Handwriting Converter",
-  "url": "https://vision39.github.io/txt-to-handwriting/",
-  "description": "Convert typed text into realistic handwriting online. Free tool for students.",
-  "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Any",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  }
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://vision39.github.io/txt-to-handwriting/#website",
+      "url": "https://vision39.github.io/txt-to-handwriting/",
+      "name": "Text to Handwriting",
+      "description": "Free online text to handwriting converter"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Text to Handwriting Converter",
+      "url": "https://vision39.github.io/txt-to-handwriting/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "datePublished": "2025-01-01",
+      "dateModified": "2026-03-28"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is this tool free to use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, the Text to Handwriting Converter is completely free with no login required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I download my handwriting as a PDF?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, you can download your converted handwriting as individual images or as a multi-page PDF."
+      }
+    }
+  ]
 }
 </script>
 
